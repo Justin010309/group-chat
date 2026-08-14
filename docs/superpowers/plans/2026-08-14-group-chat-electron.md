@@ -1693,9 +1693,6 @@ export const messageRepo = {
       },
     })
   },
-  latest(roomId: string) {
-    return prisma.message.findFirst({ where: { roomId }, orderBy: { createdAt: 'desc' } })
-  },
 }
 ```
 
