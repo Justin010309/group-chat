@@ -1,4 +1,4 @@
-# 群聊桌面应用（Electron + Vue3 + Socket.io）设计方案
+# 群聊桌面应用（Electron + React + Socket.io）设计方案
 
 > 日期：2026-08-14
 > 状态：待评审
@@ -34,8 +34,9 @@
 | 桌面框架 | Electron | 30+ | 主进程 + preload + 渲染进程 |
 | 多视图 | WebContentsView | Electron 30+ API | 取代 `<webview>` / BrowserView |
 | 构建 | electron-vite | 2.x | 主/预加载/渲染三端打包，HMR |
-| UI | Vue 3 + TypeScript + Naive UI + SCSS | Vue 3.4+ / TS 5.4 | 与已验证项目保持一致 |
-| 状态 | Pinia | 2.x | 会话、房间列表、消息缓存 |
+| UI | React + TypeScript + Ant Design + SCSS | React 19 / TS 5.4 | 桌面组件 + 自定义聊天样式 |
+| 状态 | Zustand | 5.x | 会话、房间列表、消息缓存（轻量，适合 Socket 事件流） |
+| 虚拟列表 | @tanstack/react-virtual | 3.x | 消息流虚拟滚动 |
 | HTTP | axios | 1.x | 复用统一封装模式 |
 | 实时 | socket.io-client / socket.io | 4.x | 房间、广播、心跳、自动重连 |
 | 后端 | Node.js + Express + TypeScript | Node 20 / Express 4 | 复用已验证骨架 |
@@ -44,7 +45,7 @@
 | 校验 | express-validator | 7.x | 结构化参数校验（上轮欠债，本轮补上） |
 | 认证 | JWT + bcryptjs | — | REST 用 Bearer Token，Socket 握手鉴权 |
 | 日志 | pino + pino-pretty | — | 服务端结构化日志 |
-| 测试 | Vitest + supertest + Vue Test Utils | — | 后端单测/集成 + 前端组件测试 |
+| 测试 | Vitest + supertest + React Testing Library | — | 后端单测/集成 + 前端组件测试 |
 | 部署 | Docker Compose + Nginx + PM2（可选） | — | mysql + server 编排，Nginx 反向代理 |
 | 服务器 | 阿里云轻量应用服务器 | 2C2G 起 | 与 Love Todo 同一部署模式 |
 
@@ -59,14 +60,14 @@
 ```
 Electron 主进程 (main)
 ├── BrowserWindow 主窗口
-│   └── 渲染进程 (Vue SPA，聊天 UI)
+│   └── 渲染进程 (React SPA，聊天 UI)
 │       └── preload 通过 contextBridge 暴露 window.chatAPI
 └── WebContentsView：链接预览视图（聊天内点开 URL）
 ```
 
 ### 3.2 视图划分
 
-**主窗口（Vue SPA）**：三栏布局
+**主窗口（React SPA）**：三栏布局
 
 - 左侧：房间列表（含未读数角标）
 - 中间：消息流（虚拟列表）
@@ -195,7 +196,7 @@ model Message {
 
 ### 6.1 登录 → 建连 → 进房
 
-1. 客户端登录拿到 JWT，存入 Pinia + localStorage
+1. 客户端登录拿到 JWT，存入 Zustand + localStorage
 2. 连接 Socket，握手带 token；成功后 emit `room:join`（携带全部房间 id）
 3. 服务端将 socket 加入对应 room，返回各房间最新消息时间，客户端按需拉取增量
 
@@ -261,7 +262,7 @@ model Message {
 - read：已读上报与未读数计算
 - sockets：握手鉴权失败拒绝、广播到达目标房间
 
-**前端（Vitest + Vue Test Utils）**
+**前端（Vitest + React Testing Library + jsdom）**
 
 - 消息列表虚拟滚动渲染数量恒定
 - 未读数角标更新逻辑
@@ -275,9 +276,9 @@ model Message {
 
 ```
 group-chat/
-├── client/                 # electron-vite + Vue3
+├── client/                 # electron-vite + React
 │   ├── electron/           # main / preload / WebContentsView 管理
-│   ├── src/                # Vue 渲染进程
+│   ├── src/                # React 渲染进程
 │   └── package.json
 ├── server/                 # Express + Socket.io + Prisma
 │   ├── src/
@@ -328,7 +329,7 @@ group-chat/
 
 **Week 1：骨架与地基**
 
-- 初始化 client（electron-vite + Vue3 + TS）与 server（Express + TS + Prisma）
+- 初始化 client（electron-vite + React + TS）与 server（Express + TS + Prisma）
 - 主进程最小可用：窗口、preload 通道、contextIsolation
 - Prisma schema + 首次迁移；注册/登录 + JWT
 - Socket 握手鉴权 + 连接测试
