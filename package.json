@@ -1,0 +1,15 @@
+{
+  "name": "group-chat",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    "build:server": "npm run build -w server",
+    "build:client": "npm run build -w client",
+    "test": "npm run test -w server && npm run test -w client"
+  }
+}
