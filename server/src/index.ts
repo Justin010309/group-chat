@@ -1,10 +1,6 @@
 import 'dotenv/config'
-import express from 'express'
-
-const app = express()
-app.get('/health', (_req, res) => {
-  res.json({ success: true, data: { status: 'ok' } })
-})
+import { createApp } from './app'
+import { logger } from './utils/logger'
 
 const port = Number(process.env.PORT || 3001)
-app.listen(port, () => console.log(`[group-chat] server listening on ${port}`))
+createApp().listen(port, () => logger.info(`[group-chat] server listening on ${port}`))
