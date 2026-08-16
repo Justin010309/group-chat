@@ -1,22 +1,18 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron'
 
-// Custom APIs for renderer
-const api = {}
-
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
-if (process.contextIsolated) {
-  try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
-  } catch (error) {
-    console.error(error)
+const api = {
+  notify: (title: string, body: string) => ipcRenderer.invoke('notify', { title, body }),
+  setBadge: (count: number) => ipcRenderer.invoke('set-badge', count),
+  openLink: (url: string) => ipcRenderer.invoke('open-link-preview', url),
+  closeLinkPreview: () => ipcRenderer.invoke('close-link-preview'),
+  previewNavigate: (action: 'back' | 'forward' | 'reload') =>
+    ipcRenderer.invoke('preview-navigate', action),
+  window: {
+    minimize: () => ipcRenderer.send('window:minimize'),
+    closeToTray: () => ipcRenderer.send('window:close-to-tray')
   }
-} else {
-  // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
 }
+
+contextBridge.exposeInMainWorld('chatAPI', api)
+
+export type ChatAPI = typeof api
