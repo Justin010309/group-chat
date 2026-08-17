@@ -50,6 +50,10 @@ describe('message send via socket', () => {
   it('A 发送，B 收到 message:new，ack 返回落库消息', async () => {
     const sockA: Socket = ioc(url, { auth: { token: tokenA }, transports: ['websocket'] })
     const sockB: Socket = ioc(url, { auth: { token: tokenB }, transports: ['websocket'] })
+    let aReceived = 0
+    sockA.on('message:new', () => {
+      aReceived++
+    })
 
     await Promise.all([
       new Promise<void>((r) => sockA.on('connect', () => r())),
@@ -74,6 +78,8 @@ describe('message send via socket', () => {
     expect(ackRes.status).toBe('ok')
     expect(msg.content).toBe('hello')
     expect(msg.senderNickname).toBe('MA')
+    await new Promise((r) => setTimeout(r, 150))
+    expect(aReceived).toBe(0)
     sockA.close()
     sockB.close()
   })

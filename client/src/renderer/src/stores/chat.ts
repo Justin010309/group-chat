@@ -87,10 +87,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
   applyMessage(msg) {
     set((s) => {
       const roomMsgs = s.messages[msg.roomId] ?? []
-      const filtered = roomMsgs.filter(
+      const withoutPending = roomMsgs.filter(
         (m) => !(m.status === 'sending' && m.clientMsgId && m.clientMsgId === msg.clientMsgId),
       )
-      const next = [...filtered, msg]
+      if (withoutPending.some((m) => m.id === msg.id)) {
+        return {
+          messages: { ...s.messages, [msg.roomId]: withoutPending },
+          rooms: s.rooms.map((r) =>
+            r.id === msg.roomId ? { ...r, lastMessageAt: msg.createdAt } : r
+          )
+        }
+      }
+      const next = [...withoutPending, msg]
       const rooms = s.rooms.map((r) =>
         r.id === msg.roomId ? { ...r, lastMessageAt: msg.createdAt } : r,
       )

@@ -35,4 +35,21 @@ describe('chat store', () => {
     const list = useChatStore.getState().messages['r1']
     expect(list[0].status).toBe('sending')
   })
+
+  it('applyMessage 重复到达只保留一条', () => {
+    useChatStore.setState({ activeRoomId: 'r1', messages: { r1: [] } })
+    const msg = {
+      id: 'm1',
+      roomId: 'r1',
+      senderId: 'u1',
+      senderNickname: 'A',
+      type: 'text',
+      content: 'hi',
+      createdAt: new Date().toISOString()
+    }
+    const store = useChatStore.getState()
+    store.applyMessage(msg)
+    store.applyMessage(msg)
+    expect(useChatStore.getState().messages['r1']).toHaveLength(1)
+  })
 })

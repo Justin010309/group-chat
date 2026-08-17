@@ -75,9 +75,9 @@ export function registerHandlers(io: Server, socket: Socket): void {
       return
     }
     try {
-    const message = await messageService.send(roomId, uid, content, clientMsgId)
-    io.to(`room:${roomId}`).emit('message:new', message)
-    ack?.({ status: 'ok', message })
+      const message = await messageService.send(roomId, uid, content, clientMsgId)
+      socket.to(`room:${roomId}`).emit('message:new', message)
+      ack?.({ status: 'ok', message })
     if (/@AI|@ai|@ai助手/i.test(content)) {
       void handleAiReply(io, roomId, content)
     }
