@@ -1,7 +1,7 @@
 # GroupChat 项目交接文档
 
 > 更新日期：2026-08-17
-> 用途：新会话/新窗口接手本项目时，先读本文档，再读 `docs/superpowers/specs/2026-08-14-group-chat-electron-design.md` 与 `docs/superpowers/plans/2026-08-14-group-chat-electron.md`。
+> 用途：新会话/新窗口接手本项目时，先读本文档，再读 `docs/2026-08-17-项目数据流程图与架构图.md`（架构唯一基准，开发不得跑偏），最后读 `docs/superpowers/specs/2026-08-14-group-chat-electron-design.md` 与 `docs/superpowers/plans/2026-08-14-group-chat-electron.md`。
 
 ---
 
@@ -97,7 +97,7 @@ client/  electron-vite + React 19（main/preload/renderer）
 server/  Express + Socket.io + Prisma
   src/routes,controllers,services,repositories,middleware,sockets,utils
   prisma/schema.prisma + migrations
-docs/  可行性报告、设计文档、实施计划、本文档
+docs/  可行性报告、设计文档、实施计划、架构与数据流图（唯一基准）、本文档
 docker-compose.yml  nginx.conf  deploy.sh  README.md
 ```
 
