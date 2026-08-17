@@ -23,9 +23,10 @@ async function lastReadAt(roomId: string, userId: string): Promise<Date | null> 
 async function toRoomView(
   room: { id: string; name: string; ownerId: string; lastMessageAt: Date | null },
   lastReadAt: Date | null,
-  memberCount: number
+  memberCount: number,
+  uid: string
 ): Promise<RoomView> {
-  const unread = await messageRepo.countAfter(room.id, lastReadAt)
+  const unread = await messageRepo.countAfter(room.id, lastReadAt, uid)
   return {
     id: room.id,
     name: room.name,
@@ -39,7 +40,7 @@ async function toRoomView(
 export const roomService = {
   async create(uid: string, name: string): Promise<RoomView> {
     const room = await roomRepo.create(uid, name)
-    return toRoomView(room, null, 1)
+    return toRoomView(room, null, 1, uid)
   },
 
   async listForUser(uid: string): Promise<RoomView[]> {
@@ -53,7 +54,7 @@ export const roomService = {
         if (!room) return null
         const readAt = await lastReadAt(room.id, uid)
         const memberCount = (await roomRepo.members(room.id)).length
-        return toRoomView(room, readAt, memberCount)
+        return toRoomView(room, readAt, memberCount, uid)
       })
     ).then((rooms) => rooms.filter((r): r is RoomView => r !== null))
   },
@@ -67,7 +68,7 @@ export const roomService = {
     await roomRepo.addMember(roomId, uid)
     const room = await roomRepo.findById(roomId)
     if (!room) throw new Error('ROOM_NOT_FOUND')
-    return toRoomView(room, null, (await roomRepo.members(roomId)).length)
+    return toRoomView(room, null, (await roomRepo.members(roomId)).length, uid)
   },
 
   async members(roomId: string) {

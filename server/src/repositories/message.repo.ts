@@ -15,11 +15,12 @@ export const messageRepo = {
       where: { senderId_clientMsgId: { senderId, clientMsgId } }
     })
   },
-  countAfter(roomId: string, after: Date | null) {
+  countAfter(roomId: string, after: Date | null, exceptSenderId?: string) {
     return prisma.message.count({
       where: {
         roomId,
-        ...(after ? { createdAt: { gt: after } } : {})
+        ...(after ? { createdAt: { gt: after } } : {}),
+        ...(exceptSenderId ? { senderId: { not: exceptSenderId } } : {})
       }
     })
   }
