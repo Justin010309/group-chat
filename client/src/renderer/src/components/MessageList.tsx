@@ -11,6 +11,7 @@ export function MessageList() {
   const messages = useChatStore((s) => (activeRoomId ? s.messages[activeRoomId] ?? [] : []))
   const sendMessage = useChatStore((s) => s.sendMessage)
   const typing = useChatStore((s) => (activeRoomId ? s.typing[activeRoomId] : false))
+  const aiBuffer = useChatStore((s) => (activeRoomId ? s.aiBuffer[activeRoomId] ?? '' : ''))
   const [text, setText] = useState('')
   const parentRef = useRef<HTMLDivElement>(null)
 
@@ -54,7 +55,8 @@ export function MessageList() {
             ))}
             {typing && (
               <div style={{ color: '#999', fontSize: 13, padding: '4px 2px' }}>
-                AI 助手 正在输入…
+                AI 助手：{aiBuffer}
+                <span style={{ marginLeft: 4 }}>▍</span>
               </div>
             )}
           </div>

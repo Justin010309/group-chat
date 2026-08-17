@@ -42,6 +42,13 @@ export function Chat() {
     socketService.onTyping(({ roomId, uid, typing }) => {
       useChatStore.getState().applyTyping(roomId, uid, typing)
     })
+    socketService.onAiDelta(({ roomId, content }) =>
+      useChatStore.getState().applyAiDelta(roomId, content)
+    )
+    socketService.onAiDone(({ roomId, message }) => {
+      if (message) useChatStore.getState().applyAiDone(roomId, message)
+      else useChatStore.getState().applyTyping(roomId, 'ai', false)
+    })
     socketService.onPresenceChanged(({ uid, online }) => {
       useChatStore.getState().applyPresence(uid, online)
     })

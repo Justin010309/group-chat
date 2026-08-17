@@ -45,6 +45,14 @@ class SocketService {
   onTyping(cb: (p: { roomId: string; uid: string; typing: boolean }) => void): void {
     this.socket?.on('typing', cb)
   }
+
+  onAiDelta(cb: (p: { roomId: string; content: string }) => void): void {
+    this.socket?.on('ai:delta', cb)
+  }
+
+  onAiDone(cb: (p: { roomId: string; message: MessageView | null }) => void): void {
+    this.socket?.on('ai:done', cb)
+  }
 }
 
 export const socketService = new SocketService()

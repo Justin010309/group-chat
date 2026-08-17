@@ -5,6 +5,7 @@ import { LinkCard } from './LinkCard'
 
 export function MessageItem({ message }: { message: LocalMessage }) {
   const mine = message.senderId === 'me'
+  const isAi = message.type === 'ai'
   return (
     <div
       style={{
@@ -28,10 +29,13 @@ export function MessageItem({ message }: { message: LocalMessage }) {
           style={{
             padding: '8px 12px',
             borderRadius: 10,
-            background: mine ? '#1677ff' : '#f0f0f0',
-            color: mine ? '#fff' : 'inherit',
+            background: isAi ? '#7c5cff' : mine ? '#1677ff' : '#f0f0f0',
+            color: isAi || mine ? '#fff' : 'inherit',
           }}
         >
+          {isAi && (
+            <span style={{ fontSize: 11, opacity: 0.85, marginRight: 6 }}>AI 助手</span>
+          )}
           <Typography.Text style={{ color: 'inherit' }}>{message.content}</Typography.Text>
           {extractUrls(message.content).map((url) => (
             <div key={url}>

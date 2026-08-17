@@ -14,12 +14,15 @@ interface ChatState {
   messages: Record<string, LocalMessage[]>
   online: Record<string, boolean>
   typing: Record<string, boolean>
+  aiBuffer: Record<string, string>
   loadRooms: () => Promise<void>
   openRoom: (roomId: string) => Promise<void>
   sendMessage: (content: string) => Promise<void>
   applyMessage: (msg: MessageView) => void
   applyTyping: (roomId: string, uid: string, typing: boolean) => void
   applyPresence: (uid: string, online: boolean) => void
+  applyAiDelta: (roomId: string, content: string) => void
+  applyAiDone: (roomId: string, message: MessageView) => void
 }
 
 function clientMsgId(): string {
@@ -32,6 +35,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   messages: {},
   online: {},
   typing: {},
+  aiBuffer: {},
 
   async loadRooms() {
     const rooms = await listRoomsApi()
@@ -107,5 +111,23 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   applyPresence(uid, online) {
     set((s) => ({ online: { ...s.online, [uid]: online } }))
+  },
+
+  applyAiDelta(roomId, content) {
+    set((s) => ({
+      aiBuffer: { ...s.aiBuffer, [roomId]: (s.aiBuffer[roomId] ?? '') + content },
+      typing: { ...s.typing, [roomId]: true }
+    }))
+  },
+
+  applyAiDone(roomId, message) {
+    set((s) => ({
+      aiBuffer: { ...s.aiBuffer, [roomId]: '' },
+      typing: { ...s.typing, [roomId]: false },
+      messages: {
+        ...s.messages,
+        [roomId]: [...(s.messages[roomId] ?? []), message]
+      }
+    }))
   }
 }))
