@@ -3,12 +3,17 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { Input, Button } from 'antd'
 import { SendOutlined, SmileOutlined } from '@ant-design/icons'
 import { useChatStore } from '../stores/chat'
+import type { LocalMessage } from '../stores/chat'
 import { socketService } from '../services/socket'
 import { MessageItem } from './MessageItem'
 
+const EMPTY_MESSAGES: LocalMessage[] = []
+
 export function MessageList() {
   const activeRoomId = useChatStore((s) => s.activeRoomId)
-  const messages = useChatStore((s) => (activeRoomId ? s.messages[activeRoomId] ?? [] : []))
+  const messages = useChatStore((s) =>
+    activeRoomId ? s.messages[activeRoomId] ?? EMPTY_MESSAGES : EMPTY_MESSAGES
+  )
   const sendMessage = useChatStore((s) => s.sendMessage)
   const typing = useChatStore((s) => (activeRoomId ? s.typing[activeRoomId] : false))
   const aiBuffer = useChatStore((s) => (activeRoomId ? s.aiBuffer[activeRoomId] ?? '' : ''))
