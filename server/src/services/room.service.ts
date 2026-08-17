@@ -1,6 +1,7 @@
 import { prisma } from '../utils/prisma'
 import { roomRepo } from '../repositories/room.repo'
 import { messageRepo } from '../repositories/message.repo'
+import { userRepo } from '../repositories/user.repo'
 
 export interface RoomView {
   id: string
@@ -60,15 +61,49 @@ export const roomService = {
   },
 
   async join(uid: string, roomId: string): Promise<RoomView> {
+    const room = await roomRepo.findById(roomId)
+    if (!room) {
+      const err = new Error('ROOM_NOT_FOUND') as Error & { code: string }
+      err.code = 'ROOM_NOT_FOUND'
+      throw err
+    }
     if (await roomRepo.findMembership(roomId, uid)) {
       const err = new Error('ALREADY_MEMBER') as Error & { code: string }
       err.code = 'ALREADY_MEMBER'
       throw err
     }
     await roomRepo.addMember(roomId, uid)
+    return toRoomView(room, null, (await roomRepo.members(roomId)).length, uid)
+  },
+
+  async invite(
+    roomId: string,
+    inviterUid: string,
+    username: string
+  ): Promise<{ room: RoomView; memberId: string }> {
+    if (!(await roomRepo.findMembership(roomId, inviterUid))) {
+      const err = new Error('FORBIDDEN') as Error & { code: string }
+      err.code = 'FORBIDDEN'
+      throw err
+    }
+    const target = await userRepo.findByUsername(username)
+    if (!target) {
+      const err = new Error('USER_NOT_FOUND') as Error & { code: string }
+      err.code = 'USER_NOT_FOUND'
+      throw err
+    }
+    if (await roomRepo.findMembership(roomId, target.id)) {
+      const err = new Error('ALREADY_MEMBER') as Error & { code: string }
+      err.code = 'ALREADY_MEMBER'
+      throw err
+    }
+    await roomRepo.addMember(roomId, target.id)
     const room = await roomRepo.findById(roomId)
     if (!room) throw new Error('ROOM_NOT_FOUND')
-    return toRoomView(room, null, (await roomRepo.members(roomId)).length, uid)
+    return {
+      room: await toRoomView(room, null, (await roomRepo.members(roomId)).length, inviterUid),
+      memberId: target.id
+    }
   },
 
   async members(roomId: string) {

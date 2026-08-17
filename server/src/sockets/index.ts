@@ -2,9 +2,11 @@ import type { Server as HttpServer } from 'http'
 import { Server } from 'socket.io'
 import { verifyToken } from '../utils/jwt'
 import { registerHandlers } from './handlers'
+import { setIo } from './io'
 
 export function initSocket(server: HttpServer): Server {
   const io = new Server(server, { cors: { origin: true, credentials: true } })
+  setIo(io)
 
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token as string | undefined
