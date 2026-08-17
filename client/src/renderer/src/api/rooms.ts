@@ -18,3 +18,7 @@ export const createRoomApi = async (name: string): Promise<RoomView> => {
   const res = (await request.post('/rooms', { name })) as { success: true; data: RoomView }
   return res.data
 }
+
+export const markReadApi = async (roomId: string, lastReadMessageId: string): Promise<void> => {
+  await request.post(`/rooms/${roomId}/read`, { lastReadMessageId })
+}

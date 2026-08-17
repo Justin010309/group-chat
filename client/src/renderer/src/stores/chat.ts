@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { RoomView } from '../api/rooms'
 import type { MessageView } from '../api/messages'
 import { listRoomsApi } from '../api/rooms'
+import { markReadApi } from '../api/rooms'
 import { fetchHistoryApi } from '../api/messages'
 import { socketService } from '../services/socket'
 
@@ -42,6 +43,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
     if (!existing) {
       const { messages } = await fetchHistoryApi(roomId, null)
       set((s) => ({ messages: { ...s.messages, [roomId]: messages } }))
+      const last = messages[messages.length - 1]
+      if (last) {
+        markReadApi(roomId, last.id)
+        set((s) => ({
+          rooms: s.rooms.map((r) => (r.id === roomId ? { ...r, unread: 0 } : r))
+        }))
+      }
     }
   },
 
