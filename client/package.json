@@ -24,6 +24,7 @@
     "@ant-design/icons": "^6.3.2",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "@tanstack/react-virtual": "^3.14.9",
     "antd": "^6.6.0",
     "axios": "^1.19.0",
     "socket.io-client": "^4.8.3",
