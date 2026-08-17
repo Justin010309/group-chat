@@ -26,8 +26,11 @@ export function Chat() {
       window.chatAPI?.setBadge(totalUnread)
     }
     socketService.onMessageNew(onMessage)
+    socketService.onTyping(({ roomId, uid, typing }) => {
+      useChatStore.getState().applyTyping(roomId, uid, typing)
+    })
     socketService.onPresenceChanged(({ uid, online }) => {
-      useChatStore.setState((s) => ({ online: { ...s.online, [uid]: online } }))
+      useChatStore.getState().applyPresence(uid, online)
     })
     loadRooms()
     return () => socketService.disconnect()

@@ -3,6 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { Input, Button } from 'antd'
 import { SendOutlined, SmileOutlined } from '@ant-design/icons'
 import { useChatStore } from '../stores/chat'
+import { socketService } from '../services/socket'
 import { MessageItem } from './MessageItem'
 
 export function MessageList() {
@@ -24,6 +25,7 @@ export function MessageList() {
   const submit = () => {
     if (!text.trim()) return
     sendMessage(text.trim())
+    if (activeRoomId) socketService.emitTyping(activeRoomId, false)
     setText('')
   }
 
@@ -66,7 +68,10 @@ export function MessageList() {
         <Button type="text" icon={<SmileOutlined />} aria-label="表情" />
         <Input
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value)
+            if (activeRoomId) socketService.emitTyping(activeRoomId, true)
+          }}
           onPressEnter={submit}
           placeholder="输入消息，@ 唤起 AI 助手…"
         />

@@ -18,6 +18,8 @@ interface ChatState {
   openRoom: (roomId: string) => Promise<void>
   sendMessage: (content: string) => Promise<void>
   applyMessage: (msg: MessageView) => void
+  applyTyping: (roomId: string, uid: string, typing: boolean) => void
+  applyPresence: (uid: string, online: boolean) => void
 }
 
 function clientMsgId(): string {
@@ -91,4 +93,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return { messages: { ...s.messages, [msg.roomId]: next }, rooms }
     })
   },
+
+  applyTyping(roomId, _uid, typing) {
+    if (!typing) {
+      set((s) => ({ typing: { ...s.typing, [roomId]: false } }))
+      return
+    }
+    set((s) => ({ typing: { ...s.typing, [roomId]: true } }))
+    setTimeout(() => {
+      set((s) => ({ typing: { ...s.typing, [roomId]: false } }))
+    }, 2000)
+  },
+
+  applyPresence(uid, online) {
+    set((s) => ({ online: { ...s.online, [uid]: online } }))
+  }
 }))

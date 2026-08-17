@@ -22,3 +22,18 @@ export const createRoomApi = async (name: string): Promise<RoomView> => {
 export const markReadApi = async (roomId: string, lastReadMessageId: string): Promise<void> => {
   await request.post(`/rooms/${roomId}/read`, { lastReadMessageId })
 }
+
+export interface MemberView {
+  id: string
+  nickname: string
+  username: string
+  avatarUrl: string | null
+}
+
+export const listMembersApi = async (roomId: string): Promise<MemberView[]> => {
+  const res = (await request.get(`/rooms/${roomId}/members`)) as {
+    success: true
+    data: MemberView[]
+  }
+  return res.data
+}
