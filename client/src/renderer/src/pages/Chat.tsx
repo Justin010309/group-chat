@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Layout } from 'antd'
+import type { MessageView } from '../api/messages'
 import { RoomList } from '../components/RoomList'
 import { MessageList } from '../components/MessageList'
 import { MembersPanel } from '../components/MembersPanel'
@@ -13,7 +14,17 @@ export function Chat() {
 
   useEffect(() => {
     socketService.connect(token)
-    const onMessage = useChatStore.getState().applyMessage
+    const onMessage = (msg: MessageView) => {
+      useChatStore.getState().applyMessage(msg)
+      const active = useChatStore.getState().activeRoomId
+      const totalUnread = useChatStore
+        .getState()
+        .rooms.reduce((sum, r) => sum + (r.id === active ? 0 : r.unread), 0)
+      if (msg.roomId !== active) {
+        window.chatAPI?.notify(msg.senderNickname, msg.content)
+      }
+      window.chatAPI?.setBadge(totalUnread)
+    }
     socketService.onMessageNew(onMessage)
     socketService.onPresenceChanged(({ uid, online }) => {
       useChatStore.setState((s) => ({ online: { ...s.online, [uid]: online } }))
