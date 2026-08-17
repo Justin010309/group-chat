@@ -1,8 +1,7 @@
 import { create } from 'zustand'
 import type { RoomView } from '../api/rooms'
 import type { MessageView } from '../api/messages'
-import { listRoomsApi } from '../api/rooms'
-import { markReadApi } from '../api/rooms'
+import { listRoomsApi, createRoomApi, markReadApi } from '../api/rooms'
 import { fetchHistoryApi } from '../api/messages'
 import { socketService } from '../services/socket'
 
@@ -16,6 +15,7 @@ interface ChatState {
   typing: Record<string, boolean>
   aiBuffer: Record<string, string>
   loadRooms: () => Promise<void>
+  createRoom: (name: string) => Promise<RoomView>
   openRoom: (roomId: string) => Promise<void>
   sendMessage: (content: string) => Promise<void>
   applyMessage: (msg: MessageView) => void
@@ -41,6 +41,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const rooms = await listRoomsApi()
     set({ rooms })
     socketService.joinRooms(rooms.map((r) => r.id))
+  },
+
+  async createRoom(name) {
+    const room = await createRoomApi(name)
+    set((s) => ({
+      rooms: [room, ...s.rooms],
+      activeRoomId: room.id,
+      messages: { ...s.messages, [room.id]: [] }
+    }))
+    socketService.joinRooms([room.id])
+    return room
   },
 
   async openRoom(roomId) {

@@ -1,4 +1,5 @@
-import { Button, Badge, Typography } from 'antd'
+import { useState } from 'react'
+import { Button, Badge, Typography, Modal, Input } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useChatStore } from '../stores/chat'
 
@@ -6,6 +7,22 @@ export function RoomList() {
   const rooms = useChatStore((s) => s.rooms)
   const activeRoomId = useChatStore((s) => s.activeRoomId)
   const openRoom = useChatStore((s) => s.openRoom)
+  const createRoom = useChatStore((s) => s.createRoom)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [name, setName] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const submit = async () => {
+    if (!name.trim()) return
+    setLoading(true)
+    try {
+      await createRoom(name.trim())
+      setModalOpen(false)
+      setName('')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div style={{ padding: 12 }}>
@@ -18,7 +35,13 @@ export function RoomList() {
         }}
       >
         <Typography.Text strong>房间</Typography.Text>
-        <Button size="small" type="text" icon={<PlusOutlined />} aria-label="新建房间" />
+        <Button
+          size="small"
+          type="text"
+          icon={<PlusOutlined />}
+          aria-label="新建房间"
+          onClick={() => setModalOpen(true)}
+        />
       </div>
       {rooms.map((room) => (
         <div
@@ -41,6 +64,22 @@ export function RoomList() {
           </Typography.Text>
         </div>
       ))}
+      <Modal
+        title="新建房间"
+        open={modalOpen}
+        onOk={submit}
+        confirmLoading={loading}
+        onCancel={() => setModalOpen(false)}
+        okText="创建"
+        cancelText="取消"
+      >
+        <Input
+          placeholder="房间名称"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onPressEnter={submit}
+        />
+      </Modal>
     </div>
   )
 }
