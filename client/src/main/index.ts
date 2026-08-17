@@ -7,12 +7,17 @@ import {
   nativeImage,
   Notification,
   ipcMain,
+  WebContentsView,
+  session,
+  type BaseWindow,
   type WebContents
 } from 'electron'
 import { join } from 'path'
 
 let tray: Tray | null = null
 let isQuitting = false
+let previewView: WebContentsView | null = null
+let previewWindow: BaseWindow | null = null
 
 function createTray(): void {
   const icon = nativeImage.createFromPath(join(__dirname, '../../resources/icon.png'))
@@ -47,6 +52,56 @@ ipcMain.on('window:minimize', (e) => {
 
 ipcMain.on('window:close-to-tray', (e) => {
   BrowserWindow.fromWebContents(e.sender as WebContents)?.hide()
+})
+
+function layoutPreview(): void {
+  if (!previewView || !previewWindow) return
+  const b = previewWindow.getContentBounds()
+  previewView.setBounds({
+    x: 220,
+    y: 44,
+    width: Math.max(b.width - 220 - 46, 0),
+    height: Math.max(b.height - 44 - 52, 0)
+  })
+}
+
+ipcMain.handle('open-link-preview', async (e, url: string) => {
+  const parsed = new URL(url)
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return
+  const win = BrowserWindow.fromWebContents(e.sender as WebContents)
+  if (!win || previewView) return
+  const isolated = session.fromPartition('preview-session')
+  isolated.setPermissionRequestHandler((_wc, _permission, callback) => callback(false))
+  previewView = new WebContentsView({
+    webPreferences: {
+      sandbox: true,
+      contextIsolation: true,
+      nodeIntegration: false,
+      session: isolated
+    }
+  })
+  previewWindow = win
+  win.contentView.addChildView(previewView)
+  layoutPreview()
+  win.on('resize', layoutPreview)
+  await previewView.webContents.loadURL(url)
+})
+
+ipcMain.handle('close-link-preview', () => {
+  if (previewView && previewWindow) {
+    previewWindow.contentView.removeChildView(previewView)
+    previewView.webContents.close()
+    previewView = null
+    previewWindow = null
+  }
+})
+
+ipcMain.handle('preview-navigate', (_e, action: 'back' | 'forward' | 'reload') => {
+  const wc = previewView?.webContents
+  if (!wc) return
+  if (action === 'back') wc.goBack()
+  if (action === 'forward') wc.goForward()
+  if (action === 'reload') wc.reload()
 })
 
 function createWindow(): BrowserWindow {

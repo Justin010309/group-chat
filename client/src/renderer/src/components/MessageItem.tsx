@@ -1,5 +1,7 @@
 import { Typography } from 'antd'
 import type { LocalMessage } from '../stores/chat'
+import { extractUrls } from '../utils/url'
+import { LinkCard } from './LinkCard'
 
 export function MessageItem({ message }: { message: LocalMessage }) {
   const mine = message.senderId === 'me'
@@ -31,6 +33,11 @@ export function MessageItem({ message }: { message: LocalMessage }) {
           }}
         >
           <Typography.Text style={{ color: 'inherit' }}>{message.content}</Typography.Text>
+          {extractUrls(message.content).map((url) => (
+            <div key={url}>
+              <LinkCard url={url} />
+            </div>
+          ))}
           {message.status === 'sending' && (
             <span style={{ marginLeft: 6, fontSize: 12, opacity: 0.7 }}>发送中…</span>
           )}

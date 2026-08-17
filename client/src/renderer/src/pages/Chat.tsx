@@ -1,5 +1,11 @@
-import { useEffect } from 'react'
-import { Layout } from 'antd'
+import { useEffect, useState } from 'react'
+import { Button, Layout } from 'antd'
+import {
+  ArrowLeftOutlined,
+  ArrowRightOutlined,
+  ReloadOutlined,
+  CloseOutlined
+} from '@ant-design/icons'
 import type { MessageView } from '../api/messages'
 import { RoomList } from '../components/RoomList'
 import { MessageList } from '../components/MessageList'
@@ -11,6 +17,13 @@ import { useSessionStore } from '../stores/session'
 export function Chat() {
   const token = useSessionStore((s) => s.token)!
   const loadRooms = useChatStore((s) => s.loadRooms)
+  const [previewOpen, setPreviewOpen] = useState(false)
+
+  useEffect(() => {
+    const open = () => setPreviewOpen(true)
+    window.addEventListener('gc:preview-open', open)
+    return () => window.removeEventListener('gc:preview-open', open)
+  }, [])
 
   useEffect(() => {
     socketService.connect(token)
@@ -42,6 +55,48 @@ export function Chat() {
         <RoomList />
       </Layout.Sider>
       <Layout.Content>
+        {previewOpen && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              alignItems: 'center',
+              padding: '6px 12px',
+              borderBottom: '1px solid #eee'
+            }}
+          >
+            <Button
+              size="small"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => window.chatAPI?.previewNavigate('back')}
+              aria-label="后退"
+            />
+            <Button
+              size="small"
+              icon={<ArrowRightOutlined />}
+              onClick={() => window.chatAPI?.previewNavigate('forward')}
+              aria-label="前进"
+            />
+            <Button
+              size="small"
+              icon={<ReloadOutlined />}
+              onClick={() => window.chatAPI?.previewNavigate('reload')}
+              aria-label="刷新"
+            />
+            <span style={{ flex: 1, fontSize: 12, color: '#999' }}>
+              链接预览 · 独立 Session
+            </span>
+            <Button
+              size="small"
+              icon={<CloseOutlined />}
+              onClick={() => {
+                window.chatAPI?.closeLinkPreview()
+                setPreviewOpen(false)
+              }}
+              aria-label="关闭预览"
+            />
+          </div>
+        )}
         <MessageList />
       </Layout.Content>
       <MembersPanel />
