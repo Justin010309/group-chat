@@ -7,12 +7,12 @@
 
 ## 1. 项目一句话
 
-Electron 30+ / React 19 桌面群聊应用：实时文字聊天（Socket.io）、房间/未读/在线状态、虚拟列表、托盘通知、WebContentsView 链接预览、AI 机器人流式回复（SSE → Socket），后端 Node/Express + Prisma + MySQL 8，Docker 部署方案已就绪。
+Electron 30+ / React 19 桌面群聊应用：实时文字聊天（Socket.io）、房间/未读/在线状态、房间邀请与加入（输入 ID / 邀请链接深链 / 成员面板邀请）、虚拟列表、托盘通知、WebContentsView 链接预览、AI 机器人流式回复（SSE → Socket），后端 Node/Express + Prisma + MySQL 8，Docker 部署方案已就绪。
 
 ## 2. 当前状态
 
 - **20 个实施任务、5 个 Phase 全部完成**，全部在分支 `feat/group-chat-implementation`（基于 `main`，main 上只有文档）
-- 自动化测试：**server 25/25、client 12/12、tsc 类型检查干净**
+- 自动化测试：**server 32/32、client 24/24、tsc 类型检查干净**
 - 服务端端到端验收脚本：**10/10 通过**（`.superpowers/sdd/smoke-test.cjs`，双账号实时收发/未读/已读/幂等）
 - 已推送两个远程：GitHub `origin`（Justin010309/group-chat）、Gitee `gitee`（li-canyang/group-chat）
 - PR 创建链接（未创建）：https://github.com/Justin010309/group-chat/pull/new/feat/group-chat-implementation
@@ -62,6 +62,7 @@ npm run build -w client  # typecheck + electron-vite build
 3. 链接预览：发含 URL 的消息 → 点链接卡片 → WebContentsView 预览 + 工具条
 4. AI 助手：`server/.env` 填 `AI_API_KEY`（真实 Key）后重启 server，发 `@AI 助手 ...` 看流式回复
 5. 阿里云部署：`docker-compose.yml` / `nginx.conf` / `deploy.sh` 已就绪，服务器上建 `.env` 后执行
+6. 加入房间三入口：① RoomList「加入房间」粘贴房间 ID/邀请链接；② 复制邀请链接后执行 `open "groupchat://join?roomId=<id>"` 验证深链自动打开弹窗；③ 成员面板「邀请成员」按账号拉人，对方在线时实时刷新房间列表
 
 ## 6. 近期已修复的问题（避免重复排查）
 
