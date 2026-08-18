@@ -24,6 +24,14 @@ vi.mock('../api/rooms', () => ({
     lastMessageAt: null,
     memberCount: 1,
     unread: 0
+  })),
+  joinRoomApi: vi.fn(async (roomId: string) => ({
+    id: roomId,
+    name: '已加入群',
+    ownerId: 'u2',
+    lastMessageAt: null,
+    memberCount: 2,
+    unread: 0
   }))
 }))
 
@@ -66,5 +74,30 @@ describe('chat store', () => {
     store.applyMessage(msg)
     store.applyMessage(msg)
     expect(useChatStore.getState().messages['r1']).toHaveLength(1)
+  })
+
+  it('joinRoom 加入并激活房间', async () => {
+    const { joinRoomApi } = await import('../api/rooms')
+    await useChatStore.getState().joinRoom('r3')
+    const s = useChatStore.getState()
+    expect(joinRoomApi).toHaveBeenCalledWith('r3')
+    expect(s.rooms.map((r) => r.id)).toContain('r3')
+    expect(s.activeRoomId).toBe('r3')
+  })
+
+  it('joinRoom 已是成员(409)时打开已有房间', async () => {
+    useChatStore.setState({
+      rooms: [
+        { id: 'r1', name: '测试群', ownerId: 'u1', lastMessageAt: null, memberCount: 2, unread: 0 }
+      ],
+      activeRoomId: null
+    })
+    const { joinRoomApi } = await import('../api/rooms')
+    vi.mocked(joinRoomApi).mockRejectedValueOnce({
+      code: 'ALREADY_MEMBER',
+      message: 'already a member'
+    })
+    await useChatStore.getState().joinRoom('r1')
+    expect(useChatStore.getState().activeRoomId).toBe('r1')
   })
 })

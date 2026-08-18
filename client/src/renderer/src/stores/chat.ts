@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { RoomView } from '../api/rooms'
 import type { MessageView } from '../api/messages'
-import { listRoomsApi, createRoomApi, markReadApi } from '../api/rooms'
+import { listRoomsApi, createRoomApi, joinRoomApi, markReadApi } from '../api/rooms'
 import { fetchHistoryApi } from '../api/messages'
 import { socketService } from '../services/socket'
 
@@ -16,6 +16,7 @@ interface ChatState {
   aiBuffer: Record<string, string>
   loadRooms: () => Promise<void>
   createRoom: (name: string) => Promise<RoomView>
+  joinRoom: (roomId: string) => Promise<void>
   openRoom: (roomId: string) => Promise<void>
   sendMessage: (content: string) => Promise<void>
   applyMessage: (msg: MessageView) => void
@@ -52,6 +53,33 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }))
     socketService.joinRooms([room.id])
     return room
+  },
+
+  async joinRoom(roomId) {
+    try {
+      const room = await joinRoomApi(roomId)
+      set((s) => ({
+        rooms: [room, ...s.rooms.filter((r) => r.id !== room.id)],
+        activeRoomId: room.id,
+        messages: { ...s.messages, [room.id]: s.messages[room.id] ?? [] }
+      }))
+      socketService.joinRooms([room.id])
+    } catch (e) {
+      const err = e as { code?: string }
+      if (err.code === 'ALREADY_MEMBER') {
+        let room = get().rooms.find((r) => r.id === roomId)
+        if (!room) {
+          await get().loadRooms()
+          room = get().rooms.find((r) => r.id === roomId)
+        }
+        if (room) {
+          set({ activeRoomId: room.id })
+          socketService.joinRooms([roomId])
+        }
+        return
+      }
+      throw e
+    }
   },
 
   async openRoom(roomId) {
