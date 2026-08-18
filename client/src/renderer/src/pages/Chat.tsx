@@ -26,6 +26,9 @@ export function Chat() {
   }, [])
 
   useEffect(() => {
+    const offInvite = window.chatAPI?.onInviteLink?.((roomId: string) => {
+      window.dispatchEvent(new CustomEvent('gc:invite-open', { detail: { roomId } }))
+    })
     socketService.connect(token)
     const onMessage = (msg: MessageView) => {
       useChatStore.getState().applyMessage(msg)
@@ -53,7 +56,10 @@ export function Chat() {
       useChatStore.getState().applyPresence(uid, online)
     })
     loadRooms()
-    return () => socketService.disconnect()
+    return () => {
+      offInvite?.()
+      socketService.disconnect()
+    }
   }, [token, loadRooms])
 
   return (

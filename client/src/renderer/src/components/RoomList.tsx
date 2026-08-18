@@ -63,7 +63,9 @@ export function RoomList() {
   }
 
   const copyInvite = async (roomId: string) => {
-    await navigator.clipboard.writeText(buildInviteLink(roomId))
+    const link = buildInviteLink(roomId)
+    if (window.chatAPI?.copyText) await window.chatAPI.copyText(link)
+    else await navigator.clipboard.writeText(link)
     message.success('邀请链接已复制')
   }
 

@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { App as AntApp } from 'antd'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RoomList } from '../components/RoomList'
@@ -87,5 +87,18 @@ describe('RoomList join', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: /复制邀请链接/ }))
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith('groupchat://join?roomId=r1')
+  })
+
+  it('收到 gc:invite-open 事件自动打开弹窗并预填', () => {
+    const uuid = '9f2f7c4a-9d1e-4f3b-8a5c-6b7d8e9f0a1b'
+    render(
+      <AntApp>
+        <RoomList />
+      </AntApp>
+    )
+    act(() => {
+      window.dispatchEvent(new CustomEvent('gc:invite-open', { detail: { roomId: uuid } }))
+    })
+    expect(screen.getByDisplayValue(uuid)).toBeTruthy()
   })
 })

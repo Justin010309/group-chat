@@ -9,6 +9,7 @@ import {
   ipcMain,
   WebContentsView,
   session,
+  clipboard,
   type BaseWindow,
   type WebContents
 } from 'electron'
@@ -18,6 +19,34 @@ let tray: Tray | null = null
 let isQuitting = false
 let previewView: WebContentsView | null = null
 let previewWindow: BaseWindow | null = null
+
+function parseRoomIdFromUrl(url: string): string | null {
+  const match = url.match(/roomId=([0-9a-f-]{36})/i)
+  return match?.[1] ?? null
+}
+
+function registerDeepLink(): void {
+  app.setAsDefaultProtocolClient('groupchat')
+  app.on('open-url', (event, url) => {
+    event.preventDefault()
+    const roomId = parseRoomIdFromUrl(url)
+    if (!roomId) return
+    const win = BrowserWindow.getAllWindows()[0]
+    win?.webContents.send('invite:open', { roomId })
+  })
+  if (!app.requestSingleInstanceLock()) {
+    app.quit()
+    return
+  }
+  app.on('second-instance', (_e, argv) => {
+    const url = argv.find((a) => a.startsWith('groupchat://'))
+    const roomId = url ? parseRoomIdFromUrl(url) : null
+    const win = BrowserWindow.getAllWindows()[0]
+    if (roomId) win?.webContents.send('invite:open', { roomId })
+    win?.show()
+    if (win?.isMinimized()) win.restore()
+  })
+}
 
 function createTray(): void {
   const icon = nativeImage.createFromPath(join(__dirname, '../../resources/icon.png'))
@@ -44,6 +73,10 @@ ipcMain.handle('notify', (_e, { title, body }: { title: string; body: string }) 
 ipcMain.handle('set-badge', (_e, count: number) => {
   app.setBadgeCount(count)
   tray?.setToolTip(count > 0 ? `GroupChat · ${count} 条未读` : 'GroupChat')
+})
+
+ipcMain.handle('copy-text', (_e, text: string) => {
+  clipboard.writeText(text)
 })
 
 ipcMain.on('window:minimize', (e) => {
@@ -142,6 +175,7 @@ function createWindow(): BrowserWindow {
 }
 
 app.whenReady().then(() => {
+  registerDeepLink()
   createWindow()
   createTray()
   app.on('activate', () => {
