@@ -24,6 +24,14 @@ export const joinRoomApi = async (roomId: string): Promise<RoomView> => {
   return res.data
 }
 
+export const inviteMemberApi = async (roomId: string, username: string): Promise<RoomView> => {
+  const res = (await request.post(`/rooms/${roomId}/invite`, { username })) as {
+    success: true
+    data: RoomView
+  }
+  return res.data
+}
+
 export const markReadApi = async (roomId: string, lastReadMessageId: string): Promise<void> => {
   await request.post(`/rooms/${roomId}/read`, { lastReadMessageId })
 }

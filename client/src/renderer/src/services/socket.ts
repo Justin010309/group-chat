@@ -53,6 +53,10 @@ class SocketService {
   onAiDone(cb: (p: { roomId: string; message: MessageView | null }) => void): void {
     this.socket?.on('ai:done', cb)
   }
+
+  onRoomInvited(cb: (p: { roomId: string }) => void): void {
+    this.socket?.on('room:invited', cb)
+  }
 }
 
 export const socketService = new SocketService()

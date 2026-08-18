@@ -32,6 +32,14 @@ vi.mock('../api/rooms', () => ({
     lastMessageAt: null,
     memberCount: 2,
     unread: 0
+  })),
+  inviteMemberApi: vi.fn(async () => ({
+    id: 'r1',
+    name: '测试群',
+    ownerId: 'u1',
+    lastMessageAt: null,
+    memberCount: 3,
+    unread: 0
   }))
 }))
 
@@ -99,5 +107,15 @@ describe('chat store', () => {
     })
     await useChatStore.getState().joinRoom('r1')
     expect(useChatStore.getState().activeRoomId).toBe('r1')
+  })
+
+  it('inviteMember 调用接口并刷新房间列表', async () => {
+    const { inviteMemberApi, listRoomsApi } = await import('../api/rooms')
+    vi.mocked(listRoomsApi).mockResolvedValueOnce([
+      { id: 'r1', name: '测试群', ownerId: 'u1', lastMessageAt: null, memberCount: 3, unread: 0 }
+    ])
+    await useChatStore.getState().inviteMember('r1', 'bob')
+    expect(inviteMemberApi).toHaveBeenCalledWith('r1', 'bob')
+    expect(listRoomsApi).toHaveBeenCalled()
   })
 })

@@ -55,6 +55,9 @@ export function Chat() {
     socketService.onPresenceChanged(({ uid, online }) => {
       useChatStore.getState().applyPresence(uid, online)
     })
+    socketService.onRoomInvited(() => {
+      useChatStore.getState().loadRooms()
+    })
     loadRooms()
     return () => {
       offInvite?.()

@@ -1,7 +1,13 @@
 import { create } from 'zustand'
 import type { RoomView } from '../api/rooms'
 import type { MessageView } from '../api/messages'
-import { listRoomsApi, createRoomApi, joinRoomApi, markReadApi } from '../api/rooms'
+import {
+  listRoomsApi,
+  createRoomApi,
+  joinRoomApi,
+  inviteMemberApi,
+  markReadApi
+} from '../api/rooms'
 import { fetchHistoryApi } from '../api/messages'
 import { socketService } from '../services/socket'
 
@@ -17,6 +23,7 @@ interface ChatState {
   loadRooms: () => Promise<void>
   createRoom: (name: string) => Promise<RoomView>
   joinRoom: (roomId: string) => Promise<void>
+  inviteMember: (roomId: string, username: string) => Promise<void>
   openRoom: (roomId: string) => Promise<void>
   sendMessage: (content: string) => Promise<void>
   applyMessage: (msg: MessageView) => void
@@ -80,6 +87,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }
       throw e
     }
+  },
+
+  async inviteMember(roomId, username) {
+    await inviteMemberApi(roomId, username)
+    await get().loadRooms()
   },
 
   async openRoom(roomId) {
